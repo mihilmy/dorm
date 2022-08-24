@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "description": "DynamoDB ORM (aka DORM)",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "prepare": "tsc",
+    "test": "jest"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mihilmy/dorm.git"
