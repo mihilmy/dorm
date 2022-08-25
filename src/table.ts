@@ -6,8 +6,8 @@ export class Table<T> {
 
   create() {}
 
-  read(...itemKeys: Partial<T>[]) {
-    const select = new Select(this.props.tableName).useExecutor(this.props.client);
+  read(...itemKeys: Partial<T>[]): Select<T> {
+    const select = new Select<T>(this.props.tableName).useExecutor(this.props.client);
 
     return select;
   }
