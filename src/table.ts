@@ -1,15 +1,13 @@
-import DynamoClient from "./client/base"
+import DynamoClient from "./client/base";
 import { Select } from "./statement/select";
 
 export class Table<T> {
-
-  constructor(private props: TableProps<T>) {
-  }
+  constructor(private props: TableProps<T>) {}
 
   create() {}
 
-  read(...itemKeys: (Partial<T>)[]) {
-    const select = new Select(this.props.tableName);
+  read(...itemKeys: Partial<T>[]) {
+    const select = new Select(this.props.tableName).useExecutor(this.props.client);
 
     return select;
   }
@@ -18,7 +16,6 @@ export class Table<T> {
 
   delete() {}
 }
-
 
 export interface TableProps<T> {
   client: DynamoClient;
