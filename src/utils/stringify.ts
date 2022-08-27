@@ -7,7 +7,7 @@ export default function stringify(value: any) {
     return `'${value.replace(/'/g, "''")}'`;
   }
 
-  if (typeof value === "number") {
+  if (typeof value === "number" || typeof value === "boolean") {
     return `${value}`;
   }
 
