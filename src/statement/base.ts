@@ -1,7 +1,7 @@
 import * as Conditions from "../conditions";
 
 export abstract class Statement<T> {
-  private from: { table: string; index?: string };
+  protected from: { table: string; index?: string };
   private projection: string[];
   private condition: string[];
   protected conditionalOperator: "AND" | "OR" = "AND";

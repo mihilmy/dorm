@@ -25,6 +25,12 @@ export class Select<T> extends Statement<T> {
     return this;
   }
 
+  useIndex(name: string): Select<T> {
+    this.from.index = name;
+
+    return this;
+  }
+
   consistent(): Select<T> {
     this.input.ConsistentRead = true;
 
