@@ -36,8 +36,10 @@ export class DynamoClientV2 implements DynamoClient {
     throw new Error("Method not implemented.");
   }
 
-  scan(request: ScanInput): Promise<ResultPage> {
-    throw new Error("Method not implemented.");
+  async scan(request: ScanInput): Promise<ResultPage> {
+    const { Items = [], LastEvaluatedKey } = await this.#documentClient.scan(request).promise();
+
+    return { items: Items, nextToken: LastEvaluatedKey };
   }
 
   batchGet(request: BatchGetItemInput): Promise<ResultPage> {
@@ -47,7 +49,7 @@ export class DynamoClientV2 implements DynamoClient {
   batchWrite(request: BatchWriteItemInput): Promise<ResultPage> {
     throw new Error("Method not implemented.");
   }
-  
+
   async executeStatement<T>(request: ExecuteStatementInput): Promise<ResultPage> {
     const { LastEvaluatedKey, Items = [] } = await this.#dynamodb.executeStatement(request).promise();
 

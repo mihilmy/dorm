@@ -47,4 +47,19 @@ function query() {
     .promise();
 }
 
-query().then((data) => console.log(JSON.stringify(data, null, 2)));
+class X {
+  #value = 0;
+
+  plusplus() {
+    this.#value++;
+  }
+
+  get value() {
+    return this.#value;
+  }
+}
+
+const x = new X();
+x.plusplus();
+const x1 = Object.assign({}, x);
+console.log(x1.value);

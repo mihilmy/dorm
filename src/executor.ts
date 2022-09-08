@@ -1,4 +1,5 @@
 import DynamoClient from "./client/base";
+import { Scan } from "./operations/Scan";
 import Query from "./query";
 
 export default class Executor {
@@ -10,24 +11,46 @@ export default class Executor {
     this.#query = query;
   }
 
-  async one(): Promise<T> {
+  async one<T>(): Promise<T> {
     const plan = this.#query.generate();
-    const { Items } = await this.#client.executeStatement<T>(this.input);
+    
+    for (const executable of plan.executables) {
+      if (Array.isArray(executable)) {
+        // Run in parallel
+      } else {
+        // Run in series
+        if (executable instanceof Scan) {
+          const result = await this.#client.scan(executable);
+          plan.collect(executable, result);
+        }
 
-    return Items[0];
+        // Register result only if it's needed by the plan
+      }
+    }
+
+    return plan.results[0];
   }
 
-  async all(): Promise<T[]> {
-    const resultSet = [];
-    this.input.Statement = this.buildStatement();
+  async all<T>(): Promise<T[]> {
+    const plan = this.#query.generate();
+    
+    for (const executable of plan.executables) {
+      if (Array.isArray(executable)) {
+        // Run in parallel
+      } else {
+        // Run in series
+        if (executable instanceof Scan) {
+          do {
+            const result = await this.#client.scan(executable);
+            plan.collect(executable, result);
+            executable.ExclusiveStartKey = result.nextToken
+          } while(executable.ExclusiveStartKey);
+        }
 
-    do {
-      const response = await this.client.executeStatement<T>(this.input);
-      resultSet.push(...response.Items);
+        // Register result only if it's needed by the plan
+      }
+    }
 
-      this.input.NextToken = response.NextToken;
-    } while (this.input.NextToken);
-
-    return resultSet;
+    return plan.results;
   }
 }

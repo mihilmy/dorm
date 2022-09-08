@@ -1,10 +1,16 @@
-import type DynamoClient from "./client/base";
+import Filters from "./filters";
+import { Scan } from "./operations/Scan";
+import Plan from "./plan";
 
+/**
+ * Query represent a way to store the state of the chained functions
+ * called by the clients.
+ */
 export default class Query {
   /**
-   * CRUD operation requested
+   * CRUD type requested
    */
-  #operation: "C" | "R" | "U" | "D";
+  #type: "C" | "R" | "U" | "D";
 
   /**
    * Name of the DynamoDB table
@@ -22,32 +28,44 @@ export default class Query {
   #project?: string[];
 
   /**
-   * Creates a set of readable groups where similar key sets are added together
+   * Items to operate on this depends on the CRUD type
+   * @example C | U would represent the items to create or update
+   * @example R     would represent the items to fetch or filter on
+   * @example D     would represent the items to delete
    */
-  #groups: Map<string, Group> = new Map();
+  #items: Array<any> = [];
+
+  /**
+   * Models all the where clause filters applied to the query
+   */
+  #filters: Filters = new Filters();
 
   /**
    * Used for parallel scans to help achieve a higher throughput
    */
   #concurency: number = 0;
 
-  generate(): Plan {
-    return;
+  /**
+   * Creates a new query state holder
+   */
+  constructor(type: "C" | "R" | "U" | "D", table: string, items: Array<any> = []) {
+    this.#type = type;
+    this.#table = table;
+    this.#items = items;
   }
-}
 
-interface Group {
-  keys: any[];
-  api:  "GET" | "BATCH_GET" | "QUERY" | "SCAN";
-  index?: string;
-  partial?: boolean;
-}
+  generate(): Plan {
+    if (this.#type === "R") {
+      // Simple plan where you basically generate a simple scan
+      if (this.#items.length > 0 && this.#filters.isEmpty()) {
+        return new Plan(new Scan(this.#table));
+      }
+    }
 
-interface Plan {
-  
-}
+    return new Plan();
+  }
 
-interface Statement {
-  api: keyof DynamoClient;
-  input: any;
+  __ReadInterface__() {
+    return {};
+  }
 }
