@@ -54,10 +54,10 @@ export default class Query {
     this.#items = items;
   }
 
-  generate(): Plan {
+  _generate(): Plan {
     if (this.#type === "R") {
       // Simple plan where you basically generate a simple scan
-      if (this.#items.length > 0 && this.#filters.isEmpty()) {
+      if (this.#items.length === 0 && this.#filters.isEmpty()) {
         return new Plan(new Scan(this.#table));
       }
     }
@@ -65,7 +65,7 @@ export default class Query {
     return new Plan();
   }
 
-  __ReadInterface__() {
+  _readInterface() {
     return {};
   }
 }

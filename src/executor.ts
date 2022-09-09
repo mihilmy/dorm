@@ -12,7 +12,7 @@ export default class Executor {
   }
 
   async one<T>(): Promise<T> {
-    const plan = this.#query.generate();
+    const plan = this.#query._generate();
     
     for (const executable of plan.executables) {
       if (Array.isArray(executable)) {
@@ -32,7 +32,7 @@ export default class Executor {
   }
 
   async all<T>(): Promise<T[]> {
-    const plan = this.#query.generate();
+    const plan = this.#query._generate();
     
     for (const executable of plan.executables) {
       if (Array.isArray(executable)) {
@@ -52,5 +52,12 @@ export default class Executor {
     }
 
     return plan.results;
+  }
+
+  _readInterface() {
+    return {
+      one: this.one.bind(this) as typeof Executor.prototype.one,
+      all: this.all.bind(this) as typeof Executor.prototype.all,
+    }
   }
 }

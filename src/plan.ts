@@ -28,12 +28,24 @@ export default class Plan {
   }
 
   collect(executable: Executable, result: Result | ResultPage) {
-    const items = "item" in result ? [result.item] : result.items;
+    const items = Plan.toItemList(result);
 
     if (this.state.has(executable)) {
       this.state.get(executable)?.push(...items);
     } else {
       this.results.push(...items);
     }
+  }
+
+  static toItemList(result: Result | ResultPage) {
+    const items = [];
+    if ("item" in result && result.item) {
+      items.push(result.item);
+    }
+    if ("items" in result && result.items) {
+      items.push(...result.items);
+    }
+
+    return items;
   }
 }

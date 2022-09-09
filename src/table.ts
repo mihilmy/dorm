@@ -1,4 +1,5 @@
 import DynamoClient from "./client/base";
+import Executor from "./executor";
 import Query from "./query";
 
 export class Table<T> {
@@ -8,8 +9,9 @@ export class Table<T> {
 
   read(...items: Partial<T>[]) {
     const query = new Query("R", this.props.tableName, items);
+    const executor = new Executor(this.props.client, query);
 
-    return Object.assign({}, query.__ReadInterface__(),); 
+    return Object.assign({}, query._readInterface(), executor._readInterface()); 
   }
 
   update() {}
