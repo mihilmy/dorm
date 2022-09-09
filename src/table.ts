@@ -1,17 +1,24 @@
 import DynamoClient from "./client/base";
 import Executor from "./executor";
+import ReadInterface from "./interfaces/Read";
+import Key from "./key";
 import Query from "./query";
 
 export class Table<T> {
-  constructor(private props: TableProps<T>) {}
+  #keys: Key[];
+
+  constructor(private props: TableProps<T>) {
+    this.#keys = [{ partitionKey: props.partitionKey, sortKey: props.sortKey, type: "PRIMARY" }];
+    props.indexes?.forEach(({ partitionKey, sortKey, type }) => this.#keys.push({ partitionKey, sortKey, type }));
+  }
 
   create() {}
 
   read(...items: Partial<T>[]) {
-    const query = new Query("R", this.props.tableName, items);
+    const query = new Query({ type: "R", table: this.props.tableName, items, keys: this.#keys });
     const executor = new Executor(this.props.client, query);
 
-    return Object.assign({}, query._readInterface(), executor._readInterface()); 
+    return new ReadInterface<T>(query, executor);
   }
 
   update() {}

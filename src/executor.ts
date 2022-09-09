@@ -53,11 +53,4 @@ export default class Executor {
 
     return plan.results;
   }
-
-  _readInterface() {
-    return {
-      one: this.one.bind(this) as typeof Executor.prototype.one,
-      all: this.all.bind(this) as typeof Executor.prototype.all,
-    }
-  }
 }

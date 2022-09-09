@@ -1,4 +1,5 @@
 import Filters from "./filters";
+import Key from "./key";
 import { Scan } from "./operations/Scan";
 import Plan from "./plan";
 
@@ -16,6 +17,11 @@ export default class Query {
    * Name of the DynamoDB table
    */
   #table: string;
+
+  /**
+   * Table keys used to support the best type of read operation
+   */
+  #keys: Key[];
 
   /**
    * Adjusts the sorting by a specific key
@@ -48,10 +54,11 @@ export default class Query {
   /**
    * Creates a new query state holder
    */
-  constructor(type: "C" | "R" | "U" | "D", table: string, items: Array<any> = []) {
+  constructor({ type, table, items, keys }: QueryProps) {
     this.#type = type;
     this.#table = table;
     this.#items = items;
+    this.#keys = keys;
   }
 
   _generate(): Plan {
@@ -60,12 +67,56 @@ export default class Query {
       if (this.#items.length === 0 && this.#filters.isEmpty()) {
         return new Plan(new Scan(this.#table));
       }
+      // TODO: Look into filters
+      // Partition items into readable groups
+      const readableGroups: any = {};
+      for (const item of this.#items) {
+        // Check if item can be read via GetItem
+        //   - Does item have the partition key and sort key for the primary table?
+        //   - If there is already GetItem in the group
+        //   - Remove the GetItem and refactor to a BatchGetItem
+
+        // Check if item can be read via BatchGetItem
+        //   - Find the first entry that has an open spot
+
+        // Check if item can be read via Query
+        //   - Does item have the partition key and sort key for an index?
+        //   - Does item have the partition key?
+        //   - Can you be read via Query?
+
+        // Check if item can be read via Scan
+        //   - Fallback to a single scan via ORs
+      }
     }
 
     return new Plan();
   }
 
-  _readInterface() {
-    return {};
+  or(...args: any[]): this {
+    this.conditionalOperator = "OR";
+    // @ts-ignore
+    this.where(...args);
+    this.conditionalOperator = "AND";
+    return this;
   }
+
+  where(...args: any[]) {
+    const isCustom = args.length === 1 && typeof args[0] === "string";
+    if (isCustom) {
+      this.commitCondition(args[0]);
+    } else {
+      const [path, operator, value1, value2] = args;
+      const value = operator.includes("BETWEEN") ? [value1, value2] : value1;
+      this.useConditionModifier(path, operator, value);
+    }
+
+    return this;
+  }
+}
+
+export interface QueryProps {
+  type: "C" | "R" | "U" | "D";
+  table: string;
+  keys: Key[];
+  items: any[];
 }
