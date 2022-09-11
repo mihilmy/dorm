@@ -13,11 +13,11 @@ export default class AttributeMap {
 
     for (const entry of pathList) {
       if (!pathExpr) {
-        pathExpr = this.#insertName(entry);
+        pathExpr = this.#insertName(entry as string);
       } else if (typeof entry === "number") {
         pathExpr += `[${entry}]`;
       } else {
-        pathExpr += `.${this.#insertName(entry)}`;
+        pathExpr += `.${this.#insertName(entry as string)}`;
       }
     }
 
