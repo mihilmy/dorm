@@ -1,13 +1,32 @@
-import type { BatchExecuteStatementInput, ExecuteStatementInput } from "@aws-sdk/client-dynamodb";
+import type {
+  BatchExecuteStatementInput,
+  BatchGetItemInput,
+  BatchWriteItemInput,
+  DeleteItemInput,
+  ExecuteStatementInput,
+  PutItemInput,
+  QueryInput,
+  ScanInput,
+  UpdateItemInput
+} from "@aws-sdk/client-dynamodb";
 
 export default interface DynamoClient {
-  executeStatement<T>(request: ExecuteStatementInput): Promise<_ExecuteStatementOutput<T>>;
-  batchExecuteStatement<T>(request: BatchExecuteStatementInput): Promise<_BatchExecuteStatementOutput<T>[]>;
+  put<T>(request: PutItemInput): Promise<Result<T>>;
+  update<T>(request: UpdateItemInput): Promise<Result<T>>;
+  delete<T>(request: DeleteItemInput): Promise<Result<T>>;
+  query<T>(request: QueryInput): Promise<ResultPage<T>>;
+  scan<T>(request: ScanInput): Promise<ResultPage<T>>;
+  batchGet<T>(request: BatchGetItemInput): Promise<ResultPage<T>>;
+  batchWrite<T>(request: BatchWriteItemInput): Promise<ResultPage<T>>;
+  executeStatement<T>(request: ExecuteStatementInput): Promise<ResultPage<T>>;
+  batchExecuteStatement<T>(request: BatchExecuteStatementInput): Promise<ResultPage<T>>;
 }
 
-export interface _ExecuteStatementOutput<T> {
-  Items: T[];
-  NextToken?: any;
+export interface Result<T = any> {
+  item: T;
 }
 
-export interface _BatchExecuteStatementOutput<T> {}
+export interface ResultPage<T = any> {
+  items: T[];
+  nextToken?: any;
+}

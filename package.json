@@ -1,6 +1,6 @@
 {
   "name": "@mihilmy/dorm",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "DynamoDB ORM (aka DORM)",
   "main": "lib/index.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "url": "git+https://github.com/mihilmy/dorm.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "mihilmy",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/mihilmy/dorm/issues"
@@ -36,5 +36,8 @@
   },
   "files": [
     "lib"
-  ]
+  ],
+  "dependencies": {
+    "@aws-sdk/util-dynamodb": "^3.168.0"
+  }
 }

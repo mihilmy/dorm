@@ -1,15 +1,25 @@
 import DynamoClient from "./client/base";
-import { Select } from "./statement/select";
+import Executor from "./executor";
+import ReadInterface from "./interfaces/read";
+import { TableDef } from "./definitions";
+import Statement from "./statement";
 
 export class Table<T> {
-  constructor(private props: TableProps<T>) {}
+  #client: DynamoClient;
+  #table: TableDef<T>;
+
+  constructor(props: TableProps<T>) {
+    this.#client = props.client;
+    this.#table = props.table;
+  }
 
   create() {}
 
-  read(...itemKeys: Partial<T>[]): Select<T> {
-    const select = new Select<T>(this.props.tableName).useExecutor(this.props.client);
+  read(...items: Partial<T>[]) {
+    const statement = new Statement({ type: "R", table: this.#table, items });
+    const executor = new Executor(this.#client, statement);
 
-    return select;
+    return new ReadInterface<T>(statement, executor);
   }
 
   update() {}
@@ -19,15 +29,6 @@ export class Table<T> {
 
 export interface TableProps<T> {
   client: DynamoClient;
-  tableName: string;
-  partitionKey: Extract<keyof T, string>;
-  sortKey?: Extract<keyof T, string>;
-  indexes?: Index<T>[];
+  table: TableDef<T>;
 }
 
-export interface Index<T> {
-  type: "GSI" | "LSI";
-  indexName: string;
-  partitionKey: Extract<keyof T, string>;
-  sortKey?: Extract<keyof T, string>;
-}

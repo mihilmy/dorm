@@ -1,7 +1,7 @@
 import DynamoDB from "aws-sdk/clients/dynamodb";
 import _ from "lodash";
 import { port } from "../jest-dynamodb-config";
-import { ClientV2 } from "../src/client/v2";
+import { DynamoClientV2 } from "../src/client/v2";
 import { Table } from "../src/table";
 import User from "./data/User";
 
@@ -18,9 +18,12 @@ const dynamodb: DynamoDB = new DynamoDB(config);
 const documentClient: DynamoDB.DocumentClient = new DynamoDB.DocumentClient(config);
 export const seedData = _.times(10, (n) => new User({ username: `user_${n}` }));
 export const table: Table<User> = new Table<User>({
-  client: new ClientV2(dynamodb),
-  tableName: "Users",
-  partitionKey: "userId",
+  client: new DynamoClientV2(dynamodb),
+  table: {
+    name: "Users",
+    partitionKey: "userId",
+    indexes: [{ name: "username-index", type: "GSI", partitionKey: "username" }],
+  },
 });
 
 beforeAll(async () => {
@@ -31,4 +34,3 @@ async function seed(...users: User[]) {
   const promises = users.map((user) => documentClient.put({ TableName: "Users", Item: user }).promise());
   await Promise.all(promises);
 }
-
