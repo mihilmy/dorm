@@ -2,7 +2,7 @@ import { IndexDef, TableDef } from "./definitions";
 import Filters from "./filters";
 import Get from "./operations/Get";
 import Query from "./operations/Query";
-import { Scan } from "./operations/Scan";
+import Scan from "./operations/Scan";
 import Plan from "./plan";
 
 /**
@@ -65,19 +65,18 @@ export default class Statement {
       }
 
       // Partition items into readable groups
-      const readableGroups: any = {};
+      const plan = new Plan();
+
       for (const item of this.#items) {
-        // Check if item can be read via GetItem
-        //   - Does item have the partition key and sort key for the primary table?
-        //   - If there is already GetItem in the group
-        //   - Remove the GetItem and refactor to a BatchGetItem
-        // Check if item can be read via BatchGetItem
-        //   - Find the first entry that has an open spot
-        // Check if item can be read via Query
-        //   - Does item have the partition key and sort key for an index?
-        // Check if item can be read via Scan
-        //   - Fallback to a single scan via ORs
+        const operation = this.#selectReadOperation(item);
+        plan.add(operation);
       }
+
+      // TODO: Optimize the plan by merging the similar operations
+      //       Gets into batch get items
+      //       Scans to use OR conditions instead of issuing multiple scans
+
+      return plan;
     }
 
     return new Plan();
@@ -155,7 +154,6 @@ export default class Statement {
 
     return optimalIndex;
   }
-
 }
 
 export interface QueryProps {

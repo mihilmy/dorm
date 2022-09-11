@@ -1,7 +1,9 @@
 import type { Result, ResultPage } from "./client/base";
-import type { Scan } from "./operations/Scan";
+import type Get from "./operations/Get";
+import type Query from "./operations/Query";
+import type Scan from "./operations/Scan";
 
-type Executable = Scan;
+type Executable = Get | Query | Scan;
 
 export default class Plan {
   executables: Array<Executable | Executable[]> = [];

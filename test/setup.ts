@@ -22,6 +22,7 @@ export const table: Table<User> = new Table<User>({
   table: {
     name: "Users",
     partitionKey: "userId",
+    indexes: [{ name: "username-index", type: "GSI", partitionKey: "username" }],
   },
 });
 

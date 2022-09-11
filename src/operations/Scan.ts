@@ -1,7 +1,7 @@
 import type { AttributeValue, ScanInput } from "@aws-sdk/client-dynamodb";
 import { TableDef } from "../definitions";
 
-export class Scan implements ScanInput {
+export default class Scan implements ScanInput {
   TableName: string;
   IndexName?: string;
   ExclusiveStartKey?: Record<string, AttributeValue>;

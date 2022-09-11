@@ -4,14 +4,11 @@ import { Path, Scalar } from "../definitions";
 
 export default class ReadInterface<T> {
   #query: Statement;
-
-  all: () => Promise<T[]>;
-  one: () => Promise<T>;
+  #executor: Executor;
 
   constructor(query: Statement, executor: Executor) {
     this.#query = query;
-    this.all = executor.all;
-    this.one = executor.one;
+    this.#executor = executor;
   }
 
   where(path: Path<T>, operator: "<" | "<=" | "<>" | "=" | ">" | ">=", value: Scalar): this;
@@ -47,6 +44,14 @@ export default class ReadInterface<T> {
     this.#query.or(...args);
 
     return this;
+  }
+
+  all(): Promise<T[]> {
+    return this.#executor.all();
+  }
+
+  one(): Promise<T> {
+    return this.#executor.one();
   }
 }
 

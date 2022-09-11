@@ -12,7 +12,7 @@ export interface IndexDef<T> {
   sortKey?: Extract<keyof T, string>;
 }
 
-export type Path<T> = Extract<keyof T, "string">;
+export type Path<T> = keyof T;
 export type Scalar = string | number;
 export type Operator =
   | "<"

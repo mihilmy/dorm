@@ -1,19 +1,19 @@
 import DynamoClient from "./client/base";
 import Query from "./operations/Query";
-import { Scan } from "./operations/Scan";
+import Scan from "./operations/Scan";
 import Statement from "./statement";
 
 export default class Executor {
-  #query: Statement;
+  #statement: Statement;
   #client: DynamoClient;
 
-  constructor(client: DynamoClient, query: Statement) {
+  constructor(client: DynamoClient, statement: Statement) {
     this.#client = client;
-    this.#query = query;
+    this.#statement = statement;
   }
 
   async one<T>(): Promise<T> {
-    const plan = this.#query._generate();
+    const plan = this.#statement._generate();
 
     for (const executable of plan.executables) {
       if (Array.isArray(executable)) {
@@ -38,7 +38,7 @@ export default class Executor {
   }
 
   async all<T>(): Promise<T[]> {
-    const plan = this.#query._generate();
+    const plan = this.#statement._generate();
 
     for (const executable of plan.executables) {
       if (Array.isArray(executable)) {
