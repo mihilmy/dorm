@@ -1,24 +1,25 @@
 import DynamoClient from "./client/base";
 import Executor from "./executor";
-import ReadInterface from "./interfaces/Read";
-import Key from "./key";
-import Query from "./query";
+import ReadInterface from "./interfaces/read";
+import { TableDef } from "./definitions";
+import Statement from "./statement";
 
 export class Table<T> {
-  #keys: Key[];
+  #client: DynamoClient;
+  #table: TableDef<T>;
 
-  constructor(private props: TableProps<T>) {
-    this.#keys = [{ partitionKey: props.partitionKey, sortKey: props.sortKey, type: "PRIMARY" }];
-    props.indexes?.forEach(({ partitionKey, sortKey, type }) => this.#keys.push({ partitionKey, sortKey, type }));
+  constructor(props: TableProps<T>) {
+    this.#client = props.client;
+    this.#table = props.table;
   }
 
   create() {}
 
   read(...items: Partial<T>[]) {
-    const query = new Query({ type: "R", table: this.props.tableName, items, keys: this.#keys });
-    const executor = new Executor(this.props.client, query);
+    const statement = new Statement({ type: "R", table: this.#table, items });
+    const executor = new Executor(this.#client, statement);
 
-    return new ReadInterface<T>(query, executor);
+    return new ReadInterface<T>(statement, executor);
   }
 
   update() {}
@@ -28,15 +29,6 @@ export class Table<T> {
 
 export interface TableProps<T> {
   client: DynamoClient;
-  tableName: string;
-  partitionKey: Extract<keyof T, string>;
-  sortKey?: Extract<keyof T, string>;
-  indexes?: Index<T>[];
+  table: TableDef<T>;
 }
 
-export interface Index<T> {
-  type: "GSI" | "LSI";
-  indexName: string;
-  partitionKey: Extract<keyof T, string>;
-  sortKey?: Extract<keyof T, string>;
-}

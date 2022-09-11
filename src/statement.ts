@@ -1,5 +1,7 @@
+import { IndexDef, TableDef } from "./definitions";
 import Filters from "./filters";
-import Key from "./key";
+import Get from "./operations/Get";
+import Query from "./operations/Query";
 import { Scan } from "./operations/Scan";
 import Plan from "./plan";
 
@@ -7,7 +9,7 @@ import Plan from "./plan";
  * Query represent a way to store the state of the chained functions
  * called by the clients.
  */
-export default class Query {
+export default class Statement {
   /**
    * CRUD type requested
    */
@@ -16,12 +18,7 @@ export default class Query {
   /**
    * Name of the DynamoDB table
    */
-  #table: string;
-
-  /**
-   * Table keys used to support the best type of read operation
-   */
-  #keys: Key[];
+  #table: TableDef<any>;
 
   /**
    * Adjusts the sorting by a specific key
@@ -54,11 +51,10 @@ export default class Query {
   /**
    * Creates a new query state holder
    */
-  constructor({ type, table, items, keys }: QueryProps) {
+  constructor({ type, table, items }: QueryProps) {
     this.#type = type;
     this.#table = table;
     this.#items = items;
-    this.#keys = keys;
   }
 
   _generate(): Plan {
@@ -67,7 +63,7 @@ export default class Query {
       if (this.#items.length === 0 && this.#filters.isEmpty()) {
         return new Plan(new Scan(this.#table));
       }
-      // TODO: Look into filters
+
       // Partition items into readable groups
       const readableGroups: any = {};
       for (const item of this.#items) {
@@ -75,15 +71,10 @@ export default class Query {
         //   - Does item have the partition key and sort key for the primary table?
         //   - If there is already GetItem in the group
         //   - Remove the GetItem and refactor to a BatchGetItem
-
         // Check if item can be read via BatchGetItem
         //   - Find the first entry that has an open spot
-
         // Check if item can be read via Query
         //   - Does item have the partition key and sort key for an index?
-        //   - Does item have the partition key?
-        //   - Can you be read via Query?
-
         // Check if item can be read via Scan
         //   - Fallback to a single scan via ORs
       }
@@ -93,30 +84,82 @@ export default class Query {
   }
 
   or(...args: any[]): this {
-    this.conditionalOperator = "OR";
+    // this.conditionalOperator = "OR";
     // @ts-ignore
     this.where(...args);
-    this.conditionalOperator = "AND";
+    // this.conditionalOperator = "AND";
     return this;
   }
 
   where(...args: any[]) {
     const isCustom = args.length === 1 && typeof args[0] === "string";
     if (isCustom) {
-      this.commitCondition(args[0]);
+      // this.commitCondition(args[0]);
     } else {
       const [path, operator, value1, value2] = args;
       const value = operator.includes("BETWEEN") ? [value1, value2] : value1;
-      this.useConditionModifier(path, operator, value);
+      // this.useConditionModifier(path, operator, value);
     }
 
     return this;
   }
+
+  #selectReadOperation(item: any = {}) {
+    const isTableSortKeyDefined = Boolean(this.#table.sortKey);
+    const hasPartitionKey = this.#isAttributeDefined(item, this.#table.partitionKey);
+    const hasSortKey = this.#isAttributeDefined(item, this.#table.sortKey || "");
+    const hasPrimaryKey = isTableSortKeyDefined ? hasPartitionKey && hasSortKey : hasPartitionKey;
+
+    // CHECK 1: Most optimum read operation is GetItem
+    if (hasPrimaryKey) {
+      return new Get(this.#table).setKey(item[this.#table.partitionKey], item[this.#table.sortKey]);
+    }
+
+    // CHECK 2: Next best operation is a query on the primary table
+    if (hasPartitionKey) {
+      return new Query(this.#table).setKey(item[this.#table.partitionKey]);
+    }
+
+    // CHECK 3: Query on an index if the partition key is defined
+    const optimalIndex = this.#findBestIndex(item);
+    if (optimalIndex) {
+      return new Query(this.#table, optimalIndex).setKey(item[optimalIndex.partitionKey], item[optimalIndex.sortKey]);
+    }
+
+    // CHECK 4: Last resort is to scan the table
+    return new Scan(this.#table);
+  }
+
+  #isAttributeDefined(item: any = {}, path: string) {
+    return item[path] !== undefined && item[path] !== null && item[path] !== "";
+  }
+
+  #findBestIndex(item: any = {}) {
+    const indexKeys = this.#table.indexes || [];
+    let optimalIndex: IndexDef<any>;
+
+    for (const index of indexKeys) {
+      const isIndexSortKeyDefined = Boolean(index.sortKey);
+      const hasPartitionKey = this.#isAttributeDefined(item, index.partitionKey);
+      const hasSortKey = this.#isAttributeDefined(item, index.sortKey || "");
+      const hasFullKey = isIndexSortKeyDefined ? hasPartitionKey && hasSortKey : hasPartitionKey;
+
+      if (hasFullKey) {
+        return index;
+      }
+
+      if (hasPartitionKey) {
+        optimalIndex = index;
+      }
+    }
+
+    return optimalIndex;
+  }
+
 }
 
 export interface QueryProps {
   type: "C" | "R" | "U" | "D";
-  table: string;
-  keys: Key[];
+  table: TableDef<any>;
   items: any[];
 }

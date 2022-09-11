@@ -36,5 +36,8 @@
   },
   "files": [
     "lib"
-  ]
+  ],
+  "dependencies": {
+    "@aws-sdk/util-dynamodb": "^3.168.0"
+  }
 }

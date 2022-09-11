@@ -1,4 +1,5 @@
 import type { AttributeValue, ScanInput } from "@aws-sdk/client-dynamodb";
+import { TableDef } from "../definitions";
 
 export class Scan implements ScanInput {
   TableName: string;
@@ -13,8 +14,8 @@ export class Scan implements ScanInput {
   Limit?: number;
   ConsistentRead?: boolean;
 
-  constructor(tableName: string) {
-    this.TableName = tableName;
+  constructor(table: TableDef<any>) {
+    this.TableName = table.name;
   }
 
   useIndex(indexName: string) {

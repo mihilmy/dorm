@@ -1,5 +1,3 @@
-import Key from "./key";
-
 export default class Filters {
   #conditions: Array<Condition> = [];
 

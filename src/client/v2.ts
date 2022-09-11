@@ -9,16 +9,15 @@ import type {
   ScanInput,
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import DynamoDB from "aws-sdk/clients/dynamodb";
 import DynamoClient, { Result, ResultPage } from "./base";
 
 export class DynamoClientV2 implements DynamoClient {
   #dynamodb: DynamoDB;
-  #documentClient: DynamoDB.DocumentClient;
 
   constructor(dynamodb: DynamoDB) {
     this.#dynamodb = dynamodb;
-    this.#documentClient = new DynamoDB.DocumentClient({ service: dynamodb });
   }
 
   put(request: PutItemInput): Promise<Result> {
@@ -32,14 +31,16 @@ export class DynamoClientV2 implements DynamoClient {
   delete(request: DeleteItemInput): Promise<Result> {
     throw new Error("Method not implemented.");
   }
-  query(request: QueryInput): Promise<ResultPage> {
-    throw new Error("Method not implemented.");
+  async query<T>(request: QueryInput): Promise<ResultPage<T>> {
+    const { Items = [], LastEvaluatedKey } = await this.#dynamodb.query(request).promise();
+
+    return { items: Items.map((data: any) => unmarshall(data) as T), nextToken: LastEvaluatedKey };
   }
 
-  async scan(request: ScanInput): Promise<ResultPage> {
-    const { Items = [], LastEvaluatedKey } = await this.#documentClient.scan(request).promise();
+  async scan<T>(request: ScanInput): Promise<ResultPage<T>> {
+    const { Items = [], LastEvaluatedKey } = await this.#dynamodb.scan(request).promise();
 
-    return { items: Items, nextToken: LastEvaluatedKey };
+    return { items: Items.map((data: any) => unmarshall(data) as T), nextToken: LastEvaluatedKey };
   }
 
   batchGet(request: BatchGetItemInput): Promise<ResultPage> {
@@ -54,7 +55,7 @@ export class DynamoClientV2 implements DynamoClient {
     const { LastEvaluatedKey, Items = [] } = await this.#dynamodb.executeStatement(request).promise();
 
     return {
-      items: Items.map((item) => DynamoDB.Converter.unmarshall(item) as T),
+      items: Items.map((item: any) => unmarshall(item) as T),
       nextToken: LastEvaluatedKey,
     };
   }

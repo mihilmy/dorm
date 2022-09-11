@@ -1,13 +1,14 @@
 import Executor from "../executor";
-import Query from "../query";
+import Statement from "../statement";
+import { Path, Scalar } from "../definitions";
 
 export default class ReadInterface<T> {
-  #query: Query;
+  #query: Statement;
 
   all: () => Promise<T[]>;
   one: () => Promise<T>;
 
-  constructor(query: Query, executor: Executor) {
+  constructor(query: Statement, executor: Executor) {
     this.#query = query;
     this.all = executor.all;
     this.one = executor.one;

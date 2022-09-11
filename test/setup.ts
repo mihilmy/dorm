@@ -19,8 +19,10 @@ const documentClient: DynamoDB.DocumentClient = new DynamoDB.DocumentClient(conf
 export const seedData = _.times(10, (n) => new User({ username: `user_${n}` }));
 export const table: Table<User> = new Table<User>({
   client: new DynamoClientV2(dynamodb),
-  tableName: "Users",
-  partitionKey: "userId",
+  table: {
+    name: "Users",
+    partitionKey: "userId",
+  },
 });
 
 beforeAll(async () => {
@@ -31,4 +33,3 @@ async function seed(...users: User[]) {
   const promises = users.map((user) => documentClient.put({ TableName: "Users", Item: user }).promise());
   await Promise.all(promises);
 }
-
