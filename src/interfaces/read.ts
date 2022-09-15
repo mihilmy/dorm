@@ -54,7 +54,3 @@ export default class ReadInterface<T> {
     return this.#executor.one();
   }
 }
-
-interface Where {
-  (path: string, value: string | number | [string, string] | [number, number], comparator: string): this;
-}

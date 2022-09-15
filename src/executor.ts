@@ -1,4 +1,6 @@
 import DynamoClient from "./client/base";
+import Get from "./operations/Get";
+import Put from "./operations/Put";
 import Query from "./operations/Query";
 import Scan from "./operations/Scan";
 import Statement from "./statement";
@@ -27,6 +29,16 @@ export default class Executor {
 
         if (executable instanceof Query) {
           const result = await this.#client.query(executable);
+          plan.collect(executable, result);
+        }
+
+        if (executable instanceof Get) {
+          const result = await this.#client.get(executable);
+          plan.collect(executable, result);
+        }
+
+        if (executable instanceof Put) {
+          const result = await this.#client.put(executable);
           plan.collect(executable, result);
         }
 
@@ -59,6 +71,16 @@ export default class Executor {
             plan.collect(executable, result);
             executable.ExclusiveStartKey = result.nextToken;
           } while (executable.ExclusiveStartKey);
+        }
+
+        if (executable instanceof Get) {
+          const result = await this.#client.get(executable);
+          plan.collect(executable, result);
+        }
+
+        if (executable instanceof Put) {
+          const result = await this.#client.put(executable);
+          plan.collect(executable, result);
         }
 
         // Register result only if it's needed by the plan

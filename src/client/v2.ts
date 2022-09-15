@@ -4,6 +4,7 @@ import type {
   BatchWriteItemInput,
   DeleteItemInput,
   ExecuteStatementInput,
+  GetItemInput,
   PutItemInput,
   QueryInput,
   ScanInput,
@@ -20,8 +21,25 @@ export class DynamoClientV2 implements DynamoClient {
     this.#dynamodb = dynamodb;
   }
 
-  put(request: PutItemInput): Promise<Result> {
-    throw new Error("Method not implemented.");
+  async get<T>(request: GetItemInput): Promise<Result<T>> {
+    const { Item } = await this.#dynamodb.getItem(request).promise();
+    if (!Item) {
+      return {};
+    }
+
+    return { item: unmarshall(Item as any) as T };
+  }
+
+  async put<T>(request: PutItemInput): Promise<Result<T>> {
+    const { Attributes: item } = await this.#dynamodb.putItem(request).promise();
+    const result: Result<T> = {};
+
+    // Only return the item if it was returned by the server
+    if (item) {
+      result.item = unmarshall(item as any) as T;
+    }
+
+    return result;
   }
 
   update(request: UpdateItemInput): Promise<Result> {

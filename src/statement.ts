@@ -1,6 +1,7 @@
 import { IndexDef, TableDef } from "./definitions";
 import Filters from "./filters";
 import Get from "./operations/Get";
+import Put from "./operations/Put";
 import Query from "./operations/Query";
 import Scan from "./operations/Scan";
 import Plan from "./plan";
@@ -77,6 +78,12 @@ export default class Statement {
       //       Scans to use OR conditions instead of issuing multiple scans
 
       return plan;
+    }
+
+    if (this.#type === "C") {
+      if (this.#items.length === 1) {
+        return new Plan(new Put(this.#table, this.#items[0]));
+      }
     }
 
     return new Plan();
