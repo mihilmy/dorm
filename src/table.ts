@@ -3,6 +3,7 @@ import Executor from "./executor";
 import ReadInterface from "./interfaces/read";
 import { TableDef } from "./definitions";
 import Statement from "./statement";
+import CreateInterface from "./interfaces/create";
 
 export class Table<T> {
   #client: DynamoClient;
@@ -13,7 +14,12 @@ export class Table<T> {
     this.#table = props.table;
   }
 
-  create() {}
+  create(...items: Partial<T>[]) {
+    const statement = new Statement({ type: "C", table: this.#table, items });
+    const executor = new Executor(this.#client, statement);
+
+    return new CreateInterface<T>(statement, executor);
+  }
 
   read(...items: Partial<T>[]) {
     const statement = new Statement({ type: "R", table: this.#table, items });

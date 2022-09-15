@@ -4,6 +4,7 @@ import type {
   BatchWriteItemInput,
   DeleteItemInput,
   ExecuteStatementInput,
+  GetItemInput,
   PutItemInput,
   QueryInput,
   ScanInput,
@@ -11,6 +12,7 @@ import type {
 } from "@aws-sdk/client-dynamodb";
 
 export default interface DynamoClient {
+  get<T>(request: GetItemInput): Promise<Result<T>>;
   put<T>(request: PutItemInput): Promise<Result<T>>;
   update<T>(request: UpdateItemInput): Promise<Result<T>>;
   delete<T>(request: DeleteItemInput): Promise<Result<T>>;
@@ -23,10 +25,11 @@ export default interface DynamoClient {
 }
 
 export interface Result<T = any> {
-  item: T;
+  item?: T;
 }
 
 export interface ResultPage<T = any> {
   items: T[];
   nextToken?: any;
 }
+
