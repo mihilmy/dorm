@@ -1,5 +1,6 @@
 import { IndexDef, TableDef } from "./definitions";
 import Filters from "./filters";
+import Delete from "./operations/Delete";
 import Get from "./operations/Get";
 import Put from "./operations/Put";
 import Query from "./operations/Query";
@@ -59,6 +60,12 @@ export default class Statement {
   }
 
   _generate(): Plan {
+    if (this.#type === "C") {
+      if (this.#items.length === 1) {
+        return new Plan(new Put(this.#table, this.#items[0]));
+      }
+    }
+
     if (this.#type === "R") {
       // Simple plan where you basically generate a simple scan
       if (this.#items.length === 0 && this.#filters.isEmpty()) {
@@ -80,9 +87,13 @@ export default class Statement {
       return plan;
     }
 
-    if (this.#type === "C") {
+    if (this.#type === "U") {
+      // TODO: Implement update
+    }
+
+    if (this.#type === "D") {
       if (this.#items.length === 1) {
-        return new Plan(new Put(this.#table, this.#items[0]));
+        return new Plan(new Delete(this.#table, this.#items[0]));
       }
     }
 

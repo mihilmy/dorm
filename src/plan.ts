@@ -1,10 +1,11 @@
 import type { Result, ResultPage } from "./client/base";
+import type Delete from "./operations/Delete";
 import type Get from "./operations/Get";
 import type Put from "./operations/Put";
 import type Query from "./operations/Query";
 import type Scan from "./operations/Scan";
 
-type Executable = Get | Query | Scan | Put ;
+type Executable = Get | Query | Scan | Put | Delete;
 
 export default class Plan {
   executables: Array<Executable | Executable[]> = [];

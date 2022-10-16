@@ -1,4 +1,5 @@
 import DynamoClient from "./client/base";
+import Delete from "./operations/Delete";
 import Get from "./operations/Get";
 import Put from "./operations/Put";
 import Query from "./operations/Query";
@@ -42,6 +43,11 @@ export default class Executor {
           plan.collect(executable, result);
         }
 
+        if (executable instanceof Delete) {
+          const result = await this.#client.delete(executable);
+          plan.collect(executable, result);
+        }
+
         // Register result only if it's needed by the plan
       }
     }
@@ -80,6 +86,11 @@ export default class Executor {
 
         if (executable instanceof Put) {
           const result = await this.#client.put(executable);
+          plan.collect(executable, result);
+        }
+
+        if (executable instanceof Delete) {
+          const result = await this.#client.delete(executable);
           plan.collect(executable, result);
         }
 

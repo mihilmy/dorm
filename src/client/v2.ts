@@ -46,9 +46,12 @@ export class DynamoClientV2 implements DynamoClient {
     throw new Error("Method not implemented.");
   }
 
-  delete(request: DeleteItemInput): Promise<Result> {
-    throw new Error("Method not implemented.");
+  async delete(request: DeleteItemInput): Promise<Result> {
+    const { Attributes } = await this.#dynamodb.deleteItem(request).promise();
+
+    return { item: Attributes ? unmarshall(Attributes as any) : undefined };
   }
+
   async query<T>(request: QueryInput): Promise<ResultPage<T>> {
     const { Items = [], LastEvaluatedKey } = await this.#dynamodb.query(request).promise();
 

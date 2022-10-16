@@ -1,6 +1,6 @@
 {
   "name": "@mihilmy/dorm",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "DynamoDB ORM (aka DORM)",
   "main": "lib/index.js",
   "scripts": {

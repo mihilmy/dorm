@@ -4,6 +4,7 @@ import ReadInterface from "./interfaces/read";
 import { TableDef } from "./definitions";
 import Statement from "./statement";
 import CreateInterface from "./interfaces/create";
+import DeleteInterface from "./interfaces/delete";
 
 export class Table<T> {
   #client: DynamoClient;
@@ -30,7 +31,12 @@ export class Table<T> {
 
   update() {}
 
-  delete() {}
+  delete(...items: Partial<T>[]) {
+    const statement = new Statement({ type: "D", table: this.#table, items });
+    const executor = new Executor(this.#client, statement);
+
+    return new DeleteInterface<T>(statement, executor);
+  }
 }
 
 export interface TableProps<T> {

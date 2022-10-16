@@ -22,3 +22,18 @@ it("writes new entry", async () => {
   
   expect(storedUser).toEqual(newUser);
 });
+
+it("deletes using primary key", async () => {
+  const newUser = new User({ username: "omar" });
+  const userId = newUser.userId;
+
+  // Write and read back
+  await table.create(newUser).run();
+  const storedUser = await table.read({ userId }).one();
+  expect(storedUser).toEqual(newUser);
+
+  // Delete and check
+  await table.delete({ userId }).run();
+  const deletedUser = await table.read({ userId }).one();
+  expect(deletedUser).toBeUndefined();
+})
